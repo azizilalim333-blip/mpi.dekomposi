@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Interaktif Informatika - Dekomposisi (Deep Learning)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        joy: '#f59e0b',
+                        mindful: '#10b981',
+                        meaningful: '#06b6d4'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        .font-display { font-family: 'Outfit', sans-serif; }
+        
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Glassmorphism Elements */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Drag & Drop Styling */
+        .draggable-item {
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .drop-zone.drag-over {
+            border-color: #6366f1 !important;
+            background-color: #eef2ff !important;
+        }
+
+        /* Animations */
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite ease-in-out;
+        }
+
+        /* Wheel Spinner */
+        #wheel-canvas {
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.18, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- HEADER / NAVIGATION FOR TEACHER & SMARTBOARD -->
+    <header class="bg-gradient-to-r from-brand-900 via-brand-700 to-indigo-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md border border-white/20">
+                    <i class="fa-solid fa-brain text-2xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg md:text-xl leading-tight">DEKOMPOSISI - Informatika Fase D</h1>
+                    <p class="text-xs text-indigo-200">SMP Negeri 4 Rambang Kuang • Kelas VIII</p>
+                </div>
+            </div>
+
+            <!-- Stage Navigation Tabs -->
+            <nav class="flex items-center space-x-1 md:space-x-2 bg-black/20 p-1.5 rounded-2xl overflow-x-auto max-w-full">
+                <button onclick="switchTab('mindful')" id="tab-mindful" class="nav-tab active text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 bg-white text-brand-900 shadow">
+                    <i class="fa-solid fa-heart-pulse text-rose-500"></i> <span>1. Mindful Check-in</span>
+                </button>
+                <button onclick="switchTab('apersepsi')" id="tab-apersepsi" class="nav-tab text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 text-indigo-100 hover:bg-white/10">
+                    <i class="fa-solid fa-lightbulb text-amber-400"></i> <span>2. Apersepsi & Konsep</span>
+                </button>
+                <button onclick="switchTab('tujuan')" id="tab-tujuan" class="nav-tab text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 text-indigo-100 hover:bg-white/10">
+                    <i class="fa-solid fa-bullseye text-teal-400"></i> <span>3. Tujuan Pembelajaran</span>
+                </button>
+                <button onclick="switchTab('dragdrop')" id="tab-dragdrop" class="nav-tab text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 text-indigo-100 hover:bg-white/10">
+                    <i class="fa-solid fa-puzzle-piece text-emerald-400"></i> <span>4. Game Simulasi</span>
+                </button>
+                <button onclick="switchTab('spinner')" id="tab-spinner" class="nav-tab text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 text-indigo-100 hover:bg-white/10">
+                    <i class="fa-solid fa-users text-cyan-400"></i> <span>5. Roda Studi Kasus</span>
+                </button>
+                <button onclick="switchTab('evaluation')" id="tab-evaluation" class="nav-tab text-xs md:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-2 text-indigo-100 hover:bg-white/10">
+                    <i class="fa-solid fa-gamepad text-purple-400"></i> <span>6. Kuis & Refleksi</span>
+                </button>
+            </nav>
+
+            <!-- Status Indicator -->
+            <div class="hidden xl:flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-full text-xs font-semibold border border-emerald-500/30">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                Papan Interaktif Siap
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN INTERACTIVE CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+
+        <!-- ================= 1. MINDFUL CHECK-IN & BREATHING ================= -->
+        <section id="sec-mindful" class="tab-content transition-all duration-300">
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Mood Meter & Name Input -->
+                <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold tracking-wider text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full uppercase">Mindful Learning</span>
+                            <span class="text-slate-400 text-xs"><i class="fa-solid fa-hand-pointer mr-1"></i> Sentuh Layar</span>
+                        </div>
+                        <h2 class="font-display font-bold text-2xl text-slate-800 mb-2">Bagaimana Perasaanmu Hari Ini?</h2>
+                        <p class="text-slate-600 text-sm mb-4">Masukkan namamu dan sentuh emoji yang paling mewakili energimu saat ini!</p>
+                        
+                        <!-- Input Nama Siswa -->
+                        <div class="mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                            <label for="student-name" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-user-pen text-indigo-600"></i> Nama Lengkap Siswa:
+                            </label>
+                            <input type="text" id="student-name" placeholder="Contoh: Budi Santoso (8B)" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3" id="mood-meter-grid">
+                            <button onclick="selectMood('Semangat & Ceria', '😊', 'bg-amber-100 border-amber-300 text-amber-800')" class="mood-btn p-3.5 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-slate-50 flex items-center gap-3 transition active:scale-95">
+                                <span class="text-3xl">😊</span>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800 text-xs md:text-sm">Semangat</h4>
+                                    <p class="text-[11px] text-slate-500">Siap eksplorasi!</p>
+                                </div>
+                            </button>
+                            <button onclick="selectMood('Tenang & Fokus', '😌', 'bg-emerald-100 border-emerald-300 text-emerald-800')" class="mood-btn p-3.5 rounded-2xl border-2 border-slate-200 hover:border-emerald-400 bg-slate-50 flex items-center gap-3 transition active:scale-95">
+                                <span class="text-3xl">😌</span>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800 text-xs md:text-sm">Tenang</h4>
+                                    <p class="text-[11px] text-slate-500">Siap konsentrasi</p>
+                                </div>
+                            </button>
+                            <button onclick="selectMood('Mengantuk / Lelah', '🥱', 'bg-blue-100 border-blue-300 text-blue-800')" class="mood-btn p-3.5 rounded-2xl border-2 border-slate-200 hover:border-blue-400 bg-slate-50 flex items-center gap-3 transition active:scale-95">
+                                <span class="text-3xl">🥱</span>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800 text-xs md:text-sm">Lelah</h4>
+                                    <p class="text-[11px] text-slate-500">Butuh penyegaran</p>
+                                </div>
+                            </button>
+                            <button onclick="selectMood('Cemas / Bingung', '😟', 'bg-rose-100 border-rose-300 text-rose-800')" class="mood-btn p-3.5 rounded-2xl border-2 border-slate-200 hover:border-rose-400 bg-slate-50 flex items-center gap-3 transition active:scale-95">
+                                <span class="text-3xl">😟</span>
+                                <div class="text-left">
+                                    <h4 class="font-bold text-slate-800 text-xs md:text-sm">Cemas</h4>
+                                    <p class="text-[11px] text-slate-500">Butuh relaksasi</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Mood Feedback Display -->
+                    <div id="mood-feedback" class="mt-4 p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100 hidden">
+                        <p class="text-xs font-semibold text-brand-900" id="mood-feedback-text">Terima kasih sudah berbagi perasaanmu!</p>
+                    </div>
+                </div>
+
+                <!-- Mindful Breathing Exercise -->
+                <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl flex flex-col items-center justify-between relative overflow-hidden">
+                    <div class="text-center z-10 w-full">
+                        <span class="text-xs font-bold tracking-wider text-teal-300 bg-teal-900/60 px-3 py-1 rounded-full uppercase border border-teal-500/30">Mindful Breathing (1 Menit)</span>
+                        <h2 class="font-display font-bold text-2xl mt-3">Latihan Napas Sejenak</h2>
+                        <p class="text-indigo-200 text-sm mt-1">Kosongkan pikiran, fokus pada helaan napas untuk menyiapkan otak bekerja efektif.</p>
+                    </div>
+
+                    <!-- Animated Breathing Circle -->
+                    <div class="my-8 flex flex-col items-center justify-center z-10">
+                        <div id="breathing-circle" class="w-36 h-36 md:w-44 md:h-44 rounded-full bg-gradient-to-tr from-teal-400 to-indigo-500 flex items-center justify-center shadow-2xl shadow-teal-500/30 transition-all duration-[4000ms] ease-in-out">
+                            <span id="breathing-text" class="font-display font-bold text-xl md:text-2xl text-white tracking-wide">SIAP?</span>
+                        </div>
+                        <p id="breathing-timer" class="text-xs text-indigo-300 mt-4 font-mono">Klik Mulai untuk latihan 60 detik</p>
+                    </div>
+
+                    <button id="btn-start-breathing" onclick="toggleBreathing()" class="z-10 w-full py-3.5 px-6 rounded-2xl bg-teal-400 hover:bg-teal-300 text-slate-900 font-bold font-display tracking-wide shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> Mulai Mindful Breathing
+                    </button>
+                </div>
+            </div>
+
+            <!-- Rekap Perasaan / Check-in Siswa -->
+            <div class="mt-6 bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-user text-indigo-600 text-lg"></i>
+                        <h3 class="font-display font-bold text-lg text-slate-800">Rekap Check-in Perasaan Siswa</h3>
+                    </div>
+                    <span id="recap-count" class="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full">0 Siswa</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 border-b border-slate-200">
+                                <th class="py-2.5 px-4 font-bold rounded-l-xl">#</th>
+                                <th class="py-2.5 px-4 font-bold">Nama Siswa</th>
+                                <th class="py-2.5 px-4 font-bold">Waktu</th>
+                                <th class="py-2.5 px-4 font-bold rounded-r-xl">Kondisi Mood</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recap-table-body" class="divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="4" class="py-6 text-center text-slate-400 italic">Belum ada data check-in siswa. Tulis nama dan sentuh emoji di atas!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 2. APERSEPSI BERMAKNA & KONSEP ================= -->
+        <section id="sec-apersepsi" class="tab-content hidden transition-all duration-300">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-200/80">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-amber-600 tracking-wider uppercase">Meaningful Apersepsi</span>
+                        <h2 class="font-display font-bold text-2xl text-slate-800">Tantangan Studi Kasus Nyata</h2>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8 items-center">
+                    <!-- Visual Illustration Box: Detailed Realistic Messy Bedroom SVG -->
+                    <div class="relative group rounded-2xl overflow-hidden shadow-xl border-4 border-slate-700 bg-slate-950 p-1.5">
+                        <div class="w-full h-80 sm:h-96 bg-slate-900 rounded-xl overflow-hidden relative flex items-center justify-center">
+                            <svg class="w-full h-full object-cover" viewBox="0 0 900 650" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <!-- Warm Lamp Light Effect -->
+                                    <radialGradient id="lampGlow" cx="20%" cy="30%" r="65%">
+                                        <stop offset="0%" stop-color="#fde68a" stop-opacity="0.85"/>
+                                        <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.35"/>
+                                        <stop offset="80%" stop-color="#0f172a" stop-opacity="0.95"/>
+                                    </radialGradient>
+                                    <!-- Wood Texture Pattern -->
+                                    <linearGradient id="floorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#451a03"/>
+                                        <stop offset="50%" stop-color="#2d1202"/>
+                                        <stop offset="100%" stop-color="#180a01"/>
+                                    </linearGradient>
+                                    <linearGradient id="bedWood" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#78350f"/>
+                                        <stop offset="100%" stop-color="#451a03"/>
+                                    </linearGradient>
+                                </defs>
+
+                                <!-- Room Wall & Floor Base -->
+                                <rect width="900" height="420" fill="#1e293b"/>
+                                <rect y="420" width="900" height="230" fill="url(#floorGrad)"/>
+                                <path d="M0 420 L900 420" stroke="#0f172a" stroke-width="6"/>
+
+                                <!-- Window with Blinds (Top Right) -->
+                                <rect x="530" y="20" width="230" height="170" fill="#0f172a" stroke="#334155" stroke-width="6"/>
+                                <g stroke="#475569" stroke-width="4">
+                                    <line x1="530" y1="35" x2="760" y2="35"/>
+                                    <line x1="530" y1="50" x2="760" y2="50"/>
+                                    <line x1="530" y1="65" x2="760" y2="65"/>
+                                    <line x1="530" y1="80" x2="760" y2="80"/>
+                                    <line x1="530" y1="95" x2="760" y2="95"/>
+                                    <line x1="530" y1="110" x2="760" y2="110"/>
+                                    <line x1="530" y1="125" x2="760" y2="125"/>
+                                    <line x1="530" y1="140" x2="760" y2="140"/>
+                                    <line x1="530" y1="155" x2="760" y2="155"/>
+                                    <line x1="530" y1="170" x2="760" y2="170"/>
+                                </g>
+
+                                <!-- Wall Posters & Pictures -->
+                                <rect x="25" y="15" width="135" height="160" fill="#0f172a" stroke="#94a3b8" stroke-width="3"/>
+                                <rect x="35" y="25" width="115" height="140" fill="#ef4444"/>
+                                <text x="42" y="55" fill="#ffffff" font-family="sans-serif" font-weight="900" font-size="16">GREEN</text>
+                                <text x="42" y="75" fill="#ffffff" font-family="sans-serif" font-weight="900" font-size="16">DAY</text>
+                                <circle cx="92" cy="115" r="28" fill="#000000"/>
+                                <circle cx="85" cy="110" r="4" fill="#ffffff"/>
+                                <circle cx="99" cy="110" r="4" fill="#ffffff"/>
+
+                                <rect x="175" y="10" width="80" height="70" fill="#334155" stroke="#64748b" stroke-width="2"/>
+                                <rect x="265" y="15" width="45" height="60" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+                                <rect x="405" y="10" width="105" height="135" fill="#020617" stroke="#475569" stroke-width="3"/>
+
+                                <!-- Nightstand / Drawer (Left Bed Side) -->
+                                <rect x="30" y="300" width="260" height="210" fill="url(#bedWood)" rx="4"/>
+                                <rect x="140" y="325" width="135" height="95" fill="#b45309" stroke="#78350f" stroke-width="3" rx="3"/>
+                                <circle cx="207" cy="350" r="7" fill="#f59e0b"/>
+                                <rect x="140" y="425" width="135" height="75" fill="#92400e" stroke="#78350f" stroke-width="3" rx="3"/>
+
+                                <!-- Desk Lamp with Warm Glow -->
+                                <path d="M50 300 C 50 210, 110 180, 125 160" stroke="#475569" stroke-width="6" fill="none"/>
+                                <path d="M110 155 L145 175 L120 195 Z" fill="#f8fafc"/>
+                                <rect width="900" height="650" fill="url(#lampGlow)" style="mix-blend-mode: color-dodge; opacity: 0.65; pointer-events: none;"/>
+
+                                <!-- BOTOL MINUMAN DI NAKAS & MEJA -->
+                                <rect x="65" y="240" width="20" height="58" rx="4" fill="#38bdf8" opacity="0.85"/>
+                                <rect x="90" y="248" width="18" height="50" rx="3" fill="#f43f5e" opacity="0.8"/>
+                                <rect x="180" y="235" width="22" height="62" rx="4" fill="#e0f2fe" opacity="0.9"/>
+                                <rect x="208" y="245" width="18" height="52" rx="4" fill="#22c55e" opacity="0.85"/>
+
+                                <!-- Wooden Bed Structure -->
+                                <rect x="200" y="260" width="570" height="200" fill="url(#bedWood)" rx="6"/>
+
+                                <!-- Pillows -->
+                                <rect x="200" y="170" width="130" height="90" rx="16" fill="#1e3a8a" transform="rotate(-8 200 170)"/>
+                                <rect x="310" y="155" width="120" height="85" rx="16" fill="#334155" transform="rotate(12 310 155)"/>
+
+                                <!-- Blankets & BAJU/CELANA DI KASUR -->
+                                <path d="M290 270 Q 360 170, 470 210 T 600 240 T 770 290 L 770 410 L 300 410 Z" fill="#ca8a04" opacity="0.85"/>
+                                <path d="M350 200 Q 450 160, 520 230 T 700 250 L 770 420 L 370 420 Z" fill="#65a30d"/>
+                                <!-- Celana Jeans & Kaos tumpuk di Kasur -->
+                                <path d="M480 205 Q 550 180, 620 220 L 650 300 L 510 320 Z" fill="#1d4ed8"/>
+                                <path d="M530 220 Q 600 200, 670 250 L 680 340 L 560 330 Z" fill="#dc2626"/>
+
+                                <!-- Chair with Clothes Hanging (Right) -->
+                                <path d="M625 350 L750 350 L780 610 L640 610 Z" fill="#451a03" opacity="0.6"/>
+                                <path d="M635 310 Q 700 300, 770 330 L 780 480 Q 720 500, 630 470 Z" fill="#f8fafc"/>
+                                <path d="M645 350 Q 710 340, 780 370 L 770 580 Q 700 600, 640 560 Z" fill="#b91c1c"/>
+
+                                <!-- Guitar leaning -->
+                                <g transform="rotate(-28 60 480)">
+                                    <path d="M40 450 C 10 480, 10 540, 40 570 C 60 590, 100 590, 110 570 C 130 540, 130 480, 100 450 Z" fill="#09090b" stroke="#27272a" stroke-width="4"/>
+                                    <path d="M55 470 C 35 490, 35 530, 55 550 C 70 560, 90 560, 95 540 Z" fill="#f8fafc"/>
+                                    <rect x="68" y="270" width="14" height="190" fill="#78350f"/>
+                                    <rect x="62" y="240" width="26" height="35" rx="4" fill="#09090b"/>
+                                </g>
+
+                                <!-- DETAILED CLUTTER ON FLOOR -->
+                                <!-- 1. BAJU DAN CELANA DI MANA-MANA -->
+                                <path d="M 280 470 C 320 450, 390 480, 420 460 L 450 560 L 400 580 L 360 510 L 320 570 L 270 550 Z" fill="#1e40af" stroke="#1d4ed8" stroke-width="2"/>
+                                <path d="M195 440 Q 260 410, 320 470 T 300 570 Q 230 590, 190 520 Z" fill="#581c87" opacity="0.9"/>
+                                <path d="M 580 430 Q 640 410, 680 460 L 640 520 Q 580 500, 560 460 Z" fill="#eab308"/>
+                                <path d="M 120 530 L 180 510 L 195 570 L 155 580 L 145 550 L 125 570 Z" fill="#15803d"/>
+
+                                <!-- 2. BUKU PELAJARAN BERSERAKAN -->
+                                <g transform="rotate(-15 250 420)">
+                                    <rect x="230" y="410" width="55" height="70" fill="#38bdf8"/>
+                                    <rect x="285" y="410" width="55" height="70" fill="#f8fafc"/>
+                                    <line x1="285" y1="410" x2="285" y2="480" stroke="#94a3b8" stroke-width="2"/>
+                                    <line x1="295" y1="425" x2="330" y2="425" stroke="#cbd5e1" stroke-width="2"/>
+                                    <line x1="295" y1="435" x2="325" y2="435" stroke="#cbd5e1" stroke-width="2"/>
+                                </g>
+                                <rect x="510" y="445" width="95" height="20" rx="3" fill="#dc2626" transform="rotate(12 510 445)"/>
+                                <rect x="515" y="435" width="90" height="18" rx="3" fill="#0284c7" transform="rotate(8 515 435)"/>
+                                <rect x="505" y="425" width="95" height="18" rx="3" fill="#16a34a" transform="rotate(15 505 425)"/>
+                                <rect x="430" y="570" width="90" height="65" fill="#f97316" transform="rotate(-20 430 570)" stroke="#c2410c" stroke-width="2"/>
+                                <rect x="680" y="520" width="100" height="75" fill="#8b5cf6" transform="rotate(25 680 520)" stroke="#6d28d9" stroke-width="2"/>
+
+                                <!-- 3. SAMPAH MAKANAN DAN KERTAS BERSERAKAN -->
+                                <path d="M 360 580 L 410 560 L 420 610 L 370 625 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+                                <path d="M 500 520 L 540 505 L 550 545 L 510 555 Z" fill="#f59e0b"/>
+                                <circle cx="340" cy="450" r="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+                                <circle cx="480" cy="510" r="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+                                <circle cx="220" cy="580" r="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+                                <circle cx="610" cy="580" r="11" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+                                <rect x="518" y="300" width="70" height="55" rx="6" fill="#ea580c"/>
+
+                                <!-- 4. BOTOL MINUMAN DI LANTAI -->
+                                <g transform="rotate(72 210 380)">
+                                    <rect x="200" y="370" width="22" height="60" rx="5" fill="#38bdf8" opacity="0.8"/>
+                                    <rect x="205" y="363" width="12" height="8" rx="2" fill="#0284c7"/>
+                                </g>
+                                <g transform="rotate(-40 600 500)">
+                                    <rect x="590" y="490" width="20" height="55" rx="5" fill="#4ade80" opacity="0.8"/>
+                                    <rect x="594" y="484" width="12" height="7" rx="2" fill="#15803d"/>
+                                </g>
+                                <rect x="450" y="480" width="16" height="32" rx="3" fill="#e11d48" transform="rotate(85 450 480)"/>
+                                <rect x="300" y="590" width="18" height="35" rx="3" fill="#3b82f6" transform="rotate(-15 300 590)"/>
+
+                                <!-- Backpack in Floor Center -->
+                                <rect x="325" y="500" width="110" height="80" rx="20" fill="#18181b" stroke="#3f3f46" stroke-width="3" transform="rotate(35 325 500)"/>
+
+                                <!-- Warning Tag Overlay -->
+                                <g transform="translate(30, 25)">
+                                    <rect width="320" height="42" rx="10" fill="#dc2626" opacity="0.95"/>
+                                    <text x="16" y="26" fill="#FFFFFF" font-family="Inter, sans-serif" font-weight="800" font-size="12">⚠️ KAMAR BERANTAKAN: BAJU, BUKU & SAMPAH</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-md p-3.5 rounded-xl text-white border border-white/10">
+                            <h3 class="font-display font-bold text-sm text-amber-300">Tantangan Realistis: Merapikan Ruangan Kompleks</h3>
+                            <p class="text-slate-300 text-[11px] mt-0.5">Baju & celana, buku pelajaran, sampah makanan/kertas, serta botol minuman tersebar di seluruh kamar!</p>
+                        </div>
+                    </div>
+
+                    <!-- Problem Solving Discussion Area -->
+                    <div class="space-y-6">
+                        <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200">
+                            <h3 class="font-bold text-amber-900 text-base flex items-center gap-2 mb-2">
+                                <i class="fa-solid fa-circle-question text-amber-600"></i> Pertanyaan Pemantik:
+                            </h3>
+                            <p class="text-amber-800 text-sm leading-relaxed">
+                                "Jika kalian diminta merapikan seluruh ruangan ini dalam 1 detik, bagaimana perasaan kalian? Mungkinkah dilakukan sekaligus?"
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm mb-3">Solusi Cerdas: Dekomposisi Masalah</h4>
+                            <p class="text-xs text-slate-500 mb-3">Klik tombol langkah di bawah untuk memecah masalah besar ini menjadi bagian kecil:</p>
+                            
+                            <div class="space-y-2.5">
+                                <button onclick="toggleDecompStep(1)" class="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 text-left transition flex items-center justify-between group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition">1</span>
+                                        <span class="font-semibold text-slate-700 text-sm">Sub-masalah 1: Pakaian & Kain</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+                                </button>
+                                <div id="decomp-step-1" class="hidden px-4 py-3 bg-indigo-50/50 text-indigo-900 text-xs rounded-xl border border-indigo-100 ml-4">
+                                    <i class="fa-solid fa-shirt mr-1 text-indigo-500"></i> Ambil semua pakaian kotor, pisahkan dan masukkan ke keranjang laundry.
+                                </div>
+
+                                <button onclick="toggleDecompStep(2)" class="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 text-left transition flex items-center justify-between group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition">2</span>
+                                        <span class="font-semibold text-slate-700 text-sm">Sub-masalah 2: Buku & Alat Tulis</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+                                </button>
+                                <div id="decomp-step-2" class="hidden px-4 py-3 bg-indigo-50/50 text-indigo-900 text-xs rounded-xl border border-indigo-100 ml-4">
+                                    <i class="fa-solid fa-book mr-1 text-indigo-500"></i> Kumpulkan buku yang berserakan, susun rapi di atas meja belajar/rak.
+                                </div>
+
+                                <button onclick="toggleDecompStep(3)" class="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 text-left transition flex items-center justify-between group">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition">3</span>
+                                        <span class="font-semibold text-slate-700 text-sm">Sub-masalah 3: Sampah & Debu</span>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+                                </button>
+                                <div id="decomp-step-3" class="hidden px-4 py-3 bg-indigo-50/50 text-indigo-900 text-xs rounded-xl border border-indigo-100 ml-4">
+                                    <i class="fa-solid fa-trash mr-1 text-indigo-500"></i> Buang bungkus makanan ke tempat sampah, lalu sapu lantai ruangan.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formal Definition Box -->
+                        <div class="p-5 rounded-2xl bg-gradient-to-r from-brand-900 to-indigo-900 text-white shadow-lg">
+                            <h4 class="font-display font-bold text-amber-300 text-sm mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-graduation-cap"></i> Kesimpulan Definisi Dekomposisi:
+                            </h4>
+                            <p class="text-xs text-indigo-100 leading-relaxed">
+                                <strong>Dekomposisi (Decomposition)</strong> adalah teknik Berpikir Komputasional untuk memecah masalah besar dan kompleks menjadi sub-masalah yang lebih kecil, sederhana, dan mudah dikelola/diselesaikan secara fokus.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call to action button to navigate to next tab -->
+                <div class="mt-8 flex justify-end">
+                    <button onclick="switchTab('tujuan')" class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md transition flex items-center gap-2">
+                        Lanjut ke Tujuan Pembelajaran <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 3. TUJUAN PEMBELAJARAN ================= -->
+        <section id="sec-tujuan" class="tab-content hidden transition-all duration-300">
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-slate-200/80">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-teal-600 tracking-wider uppercase">Capaian Pembelajaran</span>
+                        <h2 class="font-display font-bold text-2xl text-slate-800">Tujuan Pembelajaran (TP)</h2>
+                    </div>
+                </div>
+
+                <p class="text-slate-600 text-sm mb-6">
+                    Setelah memahami apersepsi dan konsep dekomposisi, berikut adalah target kemampuan yang diharapkan dapat kalian capai:
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Tujuan 1 -->
+                    <div class="p-6 rounded-2xl bg-teal-50/60 border-2 border-teal-200/80 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="w-10 h-10 rounded-xl bg-teal-600 text-white font-bold text-base flex items-center justify-center shadow">1</span>
+                                <span class="text-xs font-bold text-teal-700 bg-teal-100 px-3 py-1 rounded-full"><i class="fa-solid fa-brain mr-1"></i> Pemahaman Konsep</span>
+                            </div>
+                            <h3 class="font-display font-bold text-lg text-slate-800 mb-2">Konsep Dekomposisi</h3>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                Peserta didik dapat menjelaskan konsep dekomposisi sebagai strategi memecah masalah besar dan kompleks menjadi sub-masalah kecil yang lebih mudah dikelola secara tepat dan terstruktur.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-teal-200/60 flex items-center text-xs font-semibold text-teal-800 gap-2">
+                            <i class="fa-solid fa-circle-check text-teal-600"></i>
+                            <span>Fokus: Berpikir Komputasional Dasar</span>
+                        </div>
+                    </div>
+
+                    <!-- Tujuan 2 -->
+                    <div class="p-6 rounded-2xl bg-indigo-50/60 border-2 border-indigo-200/80 flex flex-col justify-between hover:shadow-md transition">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-base flex items-center justify-center shadow">2</span>
+                                <span class="text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full"><i class="fa-solid fa-gears mr-1"></i> Penerapan Praktis</span>
+                            </div>
+                            <h3 class="font-display font-bold text-lg text-slate-800 mb-2">Aplikasi Dunia Nyata</h3>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                Peserta didik dapat mengaplikasikan teknik dekomposisi untuk memecahkan persoalan dunia nyata yang kompleks menjadi sub-masalah yang lebih sederhana dan sistematis.
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-indigo-200/60 flex items-center text-xs font-semibold text-indigo-800 gap-2">
+                            <i class="fa-solid fa-circle-check text-indigo-600"></i>
+                            <span>Fokus: Problem Solving & Studi Kasus</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call to action button to navigate to next tab -->
+                <div class="mt-8 flex justify-end">
+                    <button onclick="switchTab('dragdrop')" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs md:text-sm rounded-xl shadow-md transition flex items-center gap-2">
+                        Mulai Game Simulasi <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 4. GAME SIMULASI INTERAKTIF (WARUNG IKAN BAKAR) ================= -->
+        <section id="sec-dragdrop" class="tab-content hidden transition-all duration-300">
+            <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-200/80">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full uppercase">Joyful Learning • Simulasi Papan Digital</span>
+                        <h2 class="font-display font-bold text-2xl text-slate-800 mt-1">Tantangan: "Membuka Warung Ikan Bakar"</h2>
+                        <p class="text-slate-500 text-xs">Seret (drag) atau sentuh kartu tugas acak di kiri ke kategori sub-masalah yang sesuai di kanan!</p>
+                    </div>
+                    <button onclick="resetDragDropGame()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Reset Permainan
+                    </button>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-6">
+                    <!-- Source: Random Unsorted Sticky Notes -->
+                    <div class="lg:col-span-4 bg-slate-50 p-4 rounded-2xl border-2 border-dashed border-slate-300 min-h-[400px]">
+                        <h3 class="font-bold text-slate-700 text-sm mb-3 flex items-center justify-between">
+                            <span><i class="fa-solid fa-note-sticky text-amber-500 mr-2"></i> Daftar Tugas Acak</span>
+                            <span id="remaining-count" class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-bold">12 Tugas</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mb-3">Klik item lalu klik kategori tujuan, atau drag-and-drop langsung di papan interaktif.</p>
+                        
+                        <div id="source-pool" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                            <!-- Items populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Targets: Categorized Sub-problems -->
+                    <div class="lg:col-span-8 grid sm:grid-cols-2 gap-4">
+                        <!-- Category 1 -->
+                        <div class="drop-zone bg-indigo-50/50 p-4 rounded-2xl border-2 border-indigo-200 transition-all flex flex-col justify-between" data-category="lokasi" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                            <div>
+                                <div class="flex items-center gap-2 text-indigo-900 font-bold text-sm mb-3 border-b border-indigo-200 pb-2">
+                                    <i class="fa-solid fa-store text-indigo-600"></i>
+                                    <h4>1. Lokasi & Tempat Warung</h4>
+                                </div>
+                                <div class="drop-target-list space-y-2 min-h-[90px]" id="zone-lokasi"></div>
+                            </div>
+                        </div>
+
+                        <!-- Category 2 -->
+                        <div class="drop-zone bg-emerald-50/50 p-4 rounded-2xl border-2 border-emerald-200 transition-all flex flex-col justify-between" data-category="bahan" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                            <div>
+                                <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm mb-3 border-b border-emerald-200 pb-2">
+                                    <i class="fa-solid fa-fish text-emerald-600"></i>
+                                    <h4>2. Bahan Baku & Menu</h4>
+                                </div>
+                                <div class="drop-target-list space-y-2 min-h-[90px]" id="zone-bahan"></div>
+                            </div>
+                        </div>
+
+                        <!-- Category 3 -->
+                        <div class="drop-zone bg-amber-50/50 p-4 rounded-2xl border-2 border-amber-200 transition-all flex flex-col justify-between" data-category="peralatan" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                            <div>
+                                <div class="flex items-center gap-2 text-amber-900 font-bold text-sm mb-3 border-b border-amber-200 pb-2">
+                                    <i class="fa-solid fa-fire-burner text-amber-600"></i>
+                                    <h4>3. Peralatan Operasional</h4>
+                                </div>
+                                <div class="drop-target-list space-y-2 min-h-[90px]" id="zone-peralatan"></div>
+                            </div>
+                        </div>
+
+                        <!-- Category 4 -->
+                        <div class="drop-zone bg-rose-50/50 p-4 rounded-2xl border-2 border-rose-200 transition-all flex flex-col justify-between" data-category="keuangan" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">
+                            <div>
+                                <div class="flex items-center gap-2 text-rose-900 font-bold text-sm mb-3 border-b border-rose-200 pb-2">
+                                    <i class="fa-solid fa-hand-holding-dollar text-rose-600"></i>
+                                    <h4>4. Keuangan & Pelayanan</h4>
+                                </div>
+                                <div class="drop-target-list space-y-2 min-h-[90px]" id="zone-keuangan"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Discussion Prompt for Deep Learning -->
+                <div class="mt-6 p-4 rounded-2xl bg-slate-900 text-white flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-comments text-amber-400 text-2xl"></i>
+                        <div>
+                            <h4 class="font-bold text-sm">Diskusi Deep Learning Guru & Siswa:</h4>
+                            <p class="text-xs text-slate-300">"Mengapa kita perlu memisahkan tugas kasir/pelayanan dengan tugas memasak ikan di dapur?"</p>
+                        </div>
+                    </div>
+                    <button onclick="alertModal('Diskusi Komputasional', 'Pemisahan ini penting agar terjadi efisiensi kerja, menjaga kebersihan makanan dari kontak uang tunai, serta mempercepat pelayanan pelanggan tanpa terjadi kebingungan peran!')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition">
+                        Lihat Insight
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 5. RODA KEBERUNTUNGAN & PEMETAAN KELOMPOK ================= -->
+        <section id="sec-spinner" class="tab-content hidden transition-all duration-300">
+            <div class="grid lg:grid-cols-12 gap-6">
+                <!-- Spinner Wheel Column -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-3xl shadow-xl border border-slate-200 flex flex-col items-center justify-between text-center">
+                    <div>
+                        <span class="text-xs font-bold text-cyan-600 bg-cyan-100 px-3 py-1 rounded-full uppercase">Penentuan Studi Kasus Tim</span>
+                        <h2 class="font-display font-bold text-2xl text-slate-800 mt-2">Roda Keberuntungan Digital</h2>
+                        <p class="text-xs text-slate-500 mt-1">Putar roda untuk menentukan tantangan nyata kelompok kalian!</p>
+                    </div>
+
+                    <!-- Spinner Wheel Canvas Container -->
+                    <div class="relative my-6">
+                        <!-- Arrow Pointer -->
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 text-rose-600 text-3xl drop-shadow-md">
+                            <i class="fa-solid fa-caret-down"></i>
+                        </div>
+                        <canvas id="wheel-canvas" width="300" height="300" class="rounded-full shadow-lg border-4 border-slate-800"></canvas>
+                    </div>
+
+                    <button id="spin-btn" onclick="spinWheel()" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold font-display rounded-2xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrows-spin text-lg"></i> Putar Roda Studi Kasus
+                    </button>
+                </div>
+
+                <!-- Tree Diagram Builder / Interactive Workspace -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-3xl shadow-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <span class="text-xs font-bold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full uppercase">Papan Kolaborasi Tim</span>
+                                <h3 class="font-display font-bold text-xl text-slate-800 mt-1" id="current-case-title">Kasus Terpilih: (Belum Memutar Roda)</h3>
+                            </div>
+                            <button onclick="clearTreeDiagram()" class="text-xs text-rose-600 hover:bg-rose-50 p-2 rounded-lg transition font-semibold">
+                                <i class="fa-solid fa-trash mr-1"></i> Bersihkan
+                            </button>
+                        </div>
+
+                        <!-- Tree Diagram Visual Builder -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 min-h-[320px] flex flex-col items-center justify-start space-y-4">
+                            <!-- Root Node -->
+                            <div class="bg-brand-900 text-white px-6 py-3 rounded-2xl shadow-md font-bold text-sm text-center min-w-[220px]" id="tree-root-node">
+                                MASALAH UTAMA
+                            </div>
+
+                            <!-- Connecting Line -->
+                            <div class="w-0.5 h-6 bg-indigo-300"></div>
+
+                            <!-- Sub Nodes Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full" id="tree-sub-nodes">
+                                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">
+                                    Sub-masalah 1 akan tampil di sini
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">
+                                    Sub-masalah 2 akan tampil di sini
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">
+                                    Sub-masalah 3 akan tampil di sini
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Sub Problem -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex gap-2">
+                        <input type="text" id="subnode-input" placeholder="Ketik rincian sub-masalah baru..." class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <button onclick="addSubNode()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 6. KUIS EVALUASI & REFLEKSI DEEP LEARNING ================= -->
+        <section id="sec-evaluation" class="tab-content hidden transition-all duration-300">
+            <div class="grid lg:grid-cols-12 gap-6">
+                <!-- Interactive Quiz Column -->
+                <div class="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <span class="text-xs font-bold text-purple-600 bg-purple-100 px-3 py-1 rounded-full uppercase">Joyful Assessment</span>
+                            <h2 class="font-display font-bold text-2xl text-slate-800 mt-1">Kuis Pemahaman Dekomposisi</h2>
+                        </div>
+                        <span id="quiz-score-badge" class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">Skor: 0</span>
+                    </div>
+
+                    <!-- Quiz Question Card -->
+                    <div id="quiz-container">
+                        <div class="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-100 mb-6">
+                            <span class="text-xs font-bold text-indigo-600 uppercase" id="quiz-number">Soal 1 dari 3</span>
+                            <p class="font-semibold text-slate-800 text-base mt-2" id="quiz-question">Loading soal...</p>
+                        </div>
+
+                        <!-- Quiz Options -->
+                        <div class="space-y-3" id="quiz-options">
+                            <!-- Options injected by JS -->
+                        </div>
+
+                        <div class="mt-6 flex justify-between items-center">
+                            <p id="quiz-feedback" class="text-xs font-bold"></p>
+                            <button id="btn-next-quiz" onclick="nextQuestion()" class="hidden px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">
+                                Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mindful & Meaningful Reflection Board -->
+                <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fa-solid fa-feather-pointed text-amber-400 text-xl"></i>
+                            <h3 class="font-display font-bold text-xl">Wall of Reflection</h3>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 mb-4">
+                            <p class="text-xs text-indigo-200 italic mb-2"><i class="fa-solid fa-quote-left mr-1"></i> Pertanyaan Perenungan:</p>
+                            <p class="text-xs font-semibold text-white">"Masalah besar apa dalam hidup atau pelajaranmu saat ini yang terasa paling berat? Bagaimana kamu bisa menggunakan Dekomposisi untuk menyelesaikannya?"</p>
+                        </div>
+
+                        <!-- Wall Notes List -->
+                        <div id="reflection-wall" class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                            <div class="p-3 rounded-xl bg-amber-400/20 border border-amber-400/30 text-amber-100 text-xs">
+                                <strong>Siswa A:</strong> "Saya merasa kesulitan belajar matematika. Sekarang saya mau uraikan bab demi bab dan belajar 15 menit tiap hari."
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reflection Input -->
+                    <div class="mt-4 pt-4 border-t border-white/10 flex gap-2">
+                        <input type="text" id="reflection-input" placeholder="Tuliskan 1 kalimat refleksimu..." class="flex-1 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                        <button onclick="addReflection()" class="px-4 py-2.5 bg-teal-400 hover:bg-teal-300 text-slate-900 font-bold text-xs rounded-xl transition">
+                            Kirim
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER WITH TEACHER & SCHOOL CREDIT -->
+    <footer class="bg-white border-t border-slate-200 mt-8 py-4">
+        <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-school text-indigo-600"></i>
+                <span>SMP Negeri 4 Rambang Kuang • Informatika Fase D</span>
+            </div>
+            <div>
+                <span>Disusun Oleh: <strong>Azizil Alim, S.Sos.</strong> | Kepala Sekolah: <strong>Ahmad Ardius, M.Pd.</strong></span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- CUSTOM MODAL DIALOG (REPLACING BROWSER ALERTS) -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-pulse-subtle">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg text-slate-800" id="modal-title">Informasi</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed mb-6" id="modal-body">Pesan informasi modal.</p>
+            <button onclick="closeModal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition">
+                Mengerti & Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ================= NAVIGATION TABS ================= */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-white', 'text-brand-900', 'shadow');
+                el.classList.add('text-indigo-100', 'hover:bg-white/10');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeTabBtn = document.getElementById(`tab-${tabId}`);
+            activeTabBtn.classList.add('bg-white', 'text-brand-900', 'shadow');
+            activeTabBtn.classList.remove('text-indigo-100', 'hover:bg-white/10');
+
+            if(tabId === 'spinner') {
+                drawWheel();
+            }
+        }
+
+        /* ================= 1. MINDFUL CHECK-IN & BREATHING ================= */
+        const moodRecords = [];
+
+        function selectMood(moodName, emoji, styleClass) {
+            const nameInput = document.getElementById('student-name');
+            const studentName = nameInput.value.trim() || 'Siswa Anonim';
+
+            const feedbackBox = document.getElementById('mood-feedback');
+            const feedbackText = document.getElementById('mood-feedback-text');
+            feedbackBox.className = `mt-4 p-3.5 rounded-2xl border text-xs font-semibold ${styleClass}`;
+            feedbackText.innerHTML = `Terima kasih <strong>${studentName}</strong>! Perasaanmu dicatat: <strong>${emoji} ${moodName}</strong>. Mari mulai belajar dengan gembira!`;
+            feedbackBox.classList.remove('hidden');
+
+            // Catat ke Rekap
+            const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            moodRecords.unshift({
+                name: studentName,
+                time: currentTime,
+                mood: moodName,
+                emoji: emoji
+            });
+
+            renderMoodRecap();
+        }
+
+        function renderMoodRecap() {
+            const tbody = document.getElementById('recap-table-body');
+            const countBadge = document.getElementById('recap-count');
+            
+            countBadge.innerText = `${moodRecords.length} Siswa`;
+
+            if (moodRecords.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400 italic">Belum ada data check-in siswa. Tulis nama dan sentuh emoji di atas!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = moodRecords.map((record, index) => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="py-2.5 px-4 font-bold text-slate-500">${moodRecords.length - index}</td>
+                    <td class="py-2.5 px-4 font-semibold text-slate-800">${record.name}</td>
+                    <td class="py-2.5 px-4 text-slate-500">${record.time} WIB</td>
+                    <td class="py-2.5 px-4 font-bold text-slate-700">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200">
+                            ${record.emoji} ${record.mood}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        let breathingInterval;
+        let isBreathing = false;
+        function toggleBreathing() {
+            const circle = document.getElementById('breathing-circle');
+            const text = document.getElementById('breathing-text');
+            const timerText = document.getElementById('breathing-timer');
+            const btn = document.getElementById('btn-start-breathing');
+
+            if (!isBreathing) {
+                isBreathing = true;
+                btn.innerHTML = `<i class="fa-solid fa-square"></i> Hentikan Exercise`;
+                btn.classList.replace('bg-teal-400', 'bg-rose-500');
+                btn.classList.replace('hover:bg-teal-300', 'hover:bg-rose-400');
+                btn.classList.replace('text-slate-900', 'text-white');
+
+                let cycle = 0;
+                let seconds = 60;
+
+                const runCycle = () => {
+                    if (cycle % 2 === 0) {
+                        text.innerText = "TARIK NAPAS";
+                        circle.style.transform = "scale(1.3)";
+                    } else {
+                        text.innerText = "HEMBUSKAN";
+                        circle.style.transform = "scale(0.85)";
+                    }
+                    cycle++;
+                };
+
+                runCycle();
+                breathingInterval = setInterval(() => {
+                    seconds--;
+                    timerText.innerText = `Sisa waktu: ${seconds} detik`;
+                    if (seconds % 4 === 0) runCycle();
+
+                    if (seconds <= 0) {
+                        clearInterval(breathingInterval);
+                        isBreathing = false;
+                        text.innerText = "SELESAI!";
+                        circle.style.transform = "scale(1)";
+                        timerText.innerText = "Fokus dan pikiranmu kini sudah siap!";
+                        btn.innerHTML = `<i class="fa-solid fa-play"></i> Mulai Ulang Breathing`;
+                        btn.classList.replace('bg-rose-500', 'bg-teal-400');
+                        btn.classList.replace('text-white', 'text-slate-900');
+                    }
+                }, 1000);
+            } else {
+                clearInterval(breathingInterval);
+                isBreathing = false;
+                text.innerText = "SIAP?";
+                circle.style.transform = "scale(1)";
+                timerText.innerText = "Latihan dihentikan.";
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> Mulai Mindful Breathing`;
+                btn.classList.replace('bg-rose-500', 'bg-teal-400');
+                btn.classList.replace('text-white', 'text-slate-900');
+            }
+        }
+
+        /* ================= 2. APERSEPSI STEPS ================= */
+        function toggleDecompStep(stepNum) {
+            const stepEl = document.getElementById(`decomp-step-${stepNum}`);
+            stepEl.classList.toggle('hidden');
+        }
+
+        /* ================= 3. DRAG AND DROP GAME ================= */
+        const gameItems = [
+            { id: 'item1', text: 'Sewa & Penyiapan Lahan Warung', cat: 'lokasi' },
+            { id: 'item2', text: 'Penataan Meja, Kursi & Piring Saji', cat: 'lokasi' },
+            { id: 'item3', text: 'Area Pembakaran & Spanduk Nama', cat: 'lokasi' },
+            { id: 'item4', text: 'Belanja Ikan Segar di Pasar/Nelayan', cat: 'bahan' },
+            { id: 'item5', text: 'Meracik Bumbu Olesan & Sambal', cat: 'bahan' },
+            { id: 'item6', text: 'Menyiapkan Nasi & Es Teh', cat: 'bahan' },
+            { id: 'item7', text: 'Panggangan, Arang & Kipas', cat: 'peralatan' },
+            { id: 'item8', text: 'Pisau, Talenan & Wadah Ikan', cat: 'peralatan' },
+            { id: 'item9', text: 'Peralatan Makan & Kebersihan', cat: 'peralatan' },
+            { id: 'item10', text: 'Penetapan Harga Jual Menu', cat: 'keuangan' },
+            { id: 'item11', text: 'Penyiapan Uang Kembalian & Catatan', cat: 'keuangan' },
+            { id: 'item12', text: 'Pelayanan Pemesanan & Kasir', cat: 'keuangan' },
+        ];
+
+        let selectedItemId = null;
+
+        function initDragDropGame() {
+            const pool = document.getElementById('source-pool');
+            pool.innerHTML = '';
+            
+            // Clear drop zones
+            document.querySelectorAll('.drop-target-list').forEach(zone => zone.innerHTML = '');
+
+            // Shuffle items
+            const shuffled = [...gameItems].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(item => {
+                const el = document.createElement('div');
+                el.id = item.id;
+                el.draggable = true;
+                el.className = "draggable-item p-3 bg-white rounded-xl border border-slate-200 shadow-sm text-xs font-semibold text-slate-700 hover:border-indigo-400 flex items-center justify-between";
+                el.innerHTML = `
+                    <span><i class="fa-solid fa-grip-vertical text-slate-300 mr-2"></i>${item.text}</span>
+                    <i class="fa-solid fa-circle-dot text-slate-300 text-[10px]"></i>
+                `;
+
+                // Drag events
+                el.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', item.id);
+                };
+
+                // Touch/Click selection for smartboards/tablets
+                el.onclick = () => {
+                    document.querySelectorAll('.draggable-item').forEach(i => i.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50'));
+                    el.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50');
+                    selectedItemId = item.id;
+                };
+
+                pool.appendChild(el);
+            });
+
+            updateRemainingCount();
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function dragLeave(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            const itemId = ev.dataTransfer.getData('text/plain') || selectedItemId;
+            if (!itemId) return;
+
+            const category = ev.currentTarget.getAttribute('data-category');
+            moveItemToZone(itemId, category);
+        }
+
+        // Click-based target zone handler
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.onclick = (e) => {
+                    if (selectedItemId && !e.target.classList.contains('draggable-item')) {
+                        const category = zone.getAttribute('data-category');
+                        moveItemToZone(selectedItemId, category);
+                        selectedItemId = null;
+                    }
+                };
+            });
+            initDragDropGame();
+            initQuiz();
+        });
+
+        function moveItemToZone(itemId, category) {
+            const itemObj = gameItems.find(i => i.id === itemId);
+            if (!itemObj) return;
+
+            if (itemObj.cat === category) {
+                const targetZone = document.getElementById(`zone-${category}`);
+                const itemEl = document.getElementById(itemId);
+                
+                itemEl.className = "p-2.5 bg-white rounded-xl border border-emerald-300 text-xs font-semibold text-emerald-900 shadow-sm flex items-center justify-between";
+                itemEl.innerHTML = `<span><i class="fa-solid fa-check text-emerald-500 mr-1.5"></i>${itemObj.text}</span>`;
+                itemEl.draggable = false;
+                itemEl.onclick = null;
+
+                targetZone.appendChild(itemEl);
+                updateRemainingCount();
+                checkGameCompletion();
+            } else {
+                alertModal('Kategori Belum Tepat', 'Sub-masalah ini kurang cocok berada pada kategori tersebut. Coba pikirkan kembali peran dasarnya!');
+            }
+        }
+
+        function updateRemainingCount() {
+            const count = document.getElementById('source-pool').children.length;
+            document.getElementById('remaining-count').innerText = `${count} Tugas Tersisa`;
+        }
+
+        function checkGameCompletion() {
+            const count = document.getElementById('source-pool').children.length;
+            if (count === 0) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                alertModal('Selamat! 🎉', 'Kalian berhasil mendekomposisi seluruh tugas pembukaan Warung Ikan Bakar dengan sangat tepat dan terstruktur!');
+            }
+        }
+
+        function resetDragDropGame() {
+            initDragDropGame();
+        }
+
+        /* ================= 4. SPINNER WHEEL & TREE DIAGRAM ================= */
+        const cases = [
+            "Membuat Telur Dadar Sarapan",
+            "Membersihkan Kamar Tidur",
+            "Mencuci Sepeda Motor",
+            "Menyiapkan Peralatan Sekolah"
+        ];
+        const colors = ["#6366f1", "#10b981", "#f59e0b", "#06b6d4"];
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheel-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const numOptions = cases.length;
+            const arcSize = (2 * Math.PI) / numOptions;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numOptions; i++) {
+                const angle = i * arcSize;
+                ctx.beginPath();
+                ctx.fillStyle = colors[i];
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 140, angle, angle + arcSize);
+                ctx.lineTo(150, 150);
+                ctx.fill();
+
+                // Text
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 12px Inter";
+                ctx.fillText(cases[i], 130, 5);
+                ctx.restore();
+            }
+        }
+
+        let currentRotation = 0;
+        function spinWheel() {
+            const canvas = document.getElementById('wheel-canvas');
+            const randomDegree = Math.floor(3600 + Math.random() * 360);
+            currentRotation += randomDegree;
+
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                const actualDegree = currentRotation % 360;
+                // Calculate selected index
+                const selectedIndex = Math.floor((360 - (actualDegree % 360)) / 90) % 4;
+                const selectedCase = cases[selectedIndex];
+
+                document.getElementById('current-case-title').innerText = `Kasus Terpilih: ${selectedCase}`;
+                document.getElementById('tree-root-node').innerText = selectedCase.toUpperCase();
+                
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+            }, 4000);
+        }
+
+        function addSubNode() {
+            const input = document.getElementById('subnode-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const container = document.getElementById('tree-sub-nodes');
+            
+            // Clear placeholder on first real node
+            if(container.children[0] && container.children[0].classList.contains('italic')) {
+                container.innerHTML = '';
+            }
+
+            const node = document.createElement('div');
+            node.className = "bg-indigo-50 p-3 rounded-xl border border-indigo-200 text-center font-semibold text-xs text-indigo-900 shadow-sm flex items-center justify-between";
+            node.innerHTML = `
+                <span><i class="fa-solid fa-diagram-successor text-indigo-500 mr-1.5"></i>${val}</span>
+                <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700 ml-2"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            container.appendChild(node);
+            input.value = '';
+        }
+
+        function clearTreeDiagram() {
+            document.getElementById('tree-sub-nodes').innerHTML = `
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">Sub-masalah 1 akan tampil di sini</div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">Sub-masalah 2 akan tampil di sini</div>
+                <div class="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm text-center text-xs text-slate-400 italic">Sub-masalah 3 akan tampil di sini</div>
+            `;
+        }
+
+        /* ================= 5. QUIZ & REFLECTION ================= */
+        const quizData = [
+            {
+                q: "Apa definisi utama dari strategi Dekomposisi dalam Berpikir Komputasional?",
+                options: [
+                    "Menggabungkan banyak masalah kecil menjadi satu masalah raksasa",
+                    "Memecah masalah besar dan kompleks menjadi bagian-bagian kecil yang lebih mudah dikelola",
+                    "Menghapus masalah agar tidak perlu diselesaikan",
+                    "Membuat urutan langkah-langkah otomatis tanpa evaluasi"
+                ],
+                correct: 1
+            },
+            {
+                q: "Manakah contoh penerapan dekomposisi yang paling tepat saat hendak merapikan rumah?",
+                options: [
+                    "Langsung membersihkan seluruh rumah dalam satu waktu bersamaan tanpa rencana",
+                    "Memisahkan tugas: menyapu ruang tamu, mencuci piring dapur, dan merapikan kamar tidur",
+                    "Membeli perabotan baru agar rumah terlihat rapi",
+                    "Menunggu hingga rumah sangat kotor baru dibersihkan"
+                ],
+                correct: 1
+            },
+            {
+                q: "Mengapa dekomposisi penting dilakukan sebelum kita membuat program komputer atau memecahkan masalah rumit?",
+                options: [
+                    "Agar masalah terlihat lebih menakutkan",
+                    "Agar kita tidak perlu bekerja sama dengan orang lain",
+                    "Mempermudah identifikasi masalah dan fokus menyelesaikan bagian demi bagian",
+                    "Supaya kita bisa menyelesaikan masalah tanpa berpikir"
+                ],
+                correct: 2
+            },
+            {
+                q: "Sebuah tim akan membuat aplikasi 'Kantin Sekolah Digital'. Bagaimanakah cara penerapan dekomposisi yang tepat untuk proyek tersebut?",
+                options: [
+                    "Langsung mengetik kode program tanpa membagi komponen fitur sama sekali",
+                    "Membagi aplikasi menjadi sub-fitur: Menu Makanan, Sistem Pembayaran, dan Catatan Pesanan",
+                    "Menyerahkan seluruh pengerjaan ke satu orang tanpa perencanaan",
+                    "Mengabaikan desain antarmuka dan fokus membeli server mahal"
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentQuizIdx = 0;
+        let score = 0;
+
+        function initQuiz() {
+            const q = quizData[currentQuizIdx];
+            document.getElementById('quiz-number').innerText = `Soal ${currentQuizIdx + 1} dari ${quizData.length}`;
+            document.getElementById('quiz-question').innerText = q.q;
+            document.getElementById('quiz-feedback').innerText = '';
+            document.getElementById('btn-next-quiz').classList.add('hidden');
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-300 text-left transition font-medium text-xs text-slate-700 flex items-center gap-3";
+                btn.innerHTML = `
+                    <span class="w-6 h-6 rounded-lg bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center">${String.fromCharCode(65 + idx)}</span>
+                    <span>${opt}</span>
+                `;
+                btn.onclick = () => checkAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx, btnEl) {
+            const q = quizData[currentQuizIdx];
+            const feedback = document.getElementById('quiz-feedback');
+            const allBtns = document.getElementById('quiz-options').children;
+
+            // Disable all buttons
+            for (let b of allBtns) b.disabled = true;
+
+            if (selectedIdx === q.correct) {
+                btnEl.classList.replace('bg-slate-50', 'bg-emerald-100');
+                btnEl.classList.replace('border-slate-200', 'border-emerald-400');
+                feedback.className = "text-xs font-bold text-emerald-600";
+                feedback.innerText = "✨ Tepat sekali! Jawaban kamu benar.";
+                score += 25;
+                document.getElementById('quiz-score-badge').innerText = `Skor: ${Math.round(score)}`;
+            } else {
+                btnEl.classList.replace('bg-slate-50', 'bg-rose-100');
+                btnEl.classList.replace('border-slate-200', 'border-rose-400');
+                feedback.className = "text-xs font-bold text-rose-600";
+                feedback.innerText = "❌ Kurang tepat. Coba cermati konsep dasarnya!";
+            }
+
+            document.getElementById('btn-next-quiz').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuizIdx++;
+            if (currentQuizIdx < quizData.length) {
+                initQuiz();
+            } else {
+                document.getElementById('quiz-container').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h3 class="font-display font-bold text-2xl text-slate-800">Kuis Selesai!</h3>
+                        <p class="text-slate-600 text-sm mt-1">Skor Akhir Kamu: <strong class="text-indigo-600 font-bold text-xl">${Math.round(score)}</strong> / 100</p>
+                        <button onclick="currentQuizIdx=0; score=0; initQuiz();" class="mt-6 px-6 py-3 bg-indigo-600 text-white font-bold text-xs rounded-xl hover:bg-indigo-700 transition">
+                            Ulangi Kuis
+                        </button>
+                    </div>
+                `;
+                confetti({ particleCount: 80, spread: 60 });
+            }
+        }
+
+        function addReflection() {
+            const input = document.getElementById('reflection-input');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const wall = document.getElementById('reflection-wall');
+            const note = document.createElement('div');
+            note.className = "p-3 rounded-xl bg-teal-400/20 border border-teal-400/30 text-teal-100 text-xs";
+            note.innerHTML = `<strong>Siswa (Baru):</strong> "${val}"`;
+
+            wall.prepend(note);
+            input.value = '';
+        }
+
+        /* ================= MODAL UTILITY ================= */
+        function alertModal(title, message) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
